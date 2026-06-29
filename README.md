@@ -50,6 +50,31 @@ Then edit `.env`, and optionally let the script do the rest:
 A `Makefile` wraps the common actions — `make help`, `make setup`, `make login`,
 `make sync`, `make serve`, `make test`, `make claude-install`.
 
+### Automated (Windows / PowerShell)
+
+```powershell
+.\setup.ps1                  # venv + deps + .env scaffold (locked to your user), then next steps
+.\setup.ps1 -Dev -Login -Sync -Claude   # switches combine, same meaning as above
+```
+
+If PowerShell blocks the script, run it once as:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+Then use the venv directly for the recurring commands:
+
+```powershell
+.\.venv\Scripts\python.exe login.py
+.\.venv\Scripts\python.exe sync.py --platform garmin --full-history
+.\.venv\Scripts\python.exe scripts\claude_config.py --write   # Claude Desktop config
+```
+
+On Windows the setup script restricts `.env` to your user account via `icacls`
+(the POSIX `chmod` warning is a no-op there); the garth token cache lives under
+`%USERPROFILE%\.garth`, which is already user-scoped by default.
+
 The Claude Desktop entry can be generated or installed on its own:
 
 ```bash
