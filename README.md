@@ -1,9 +1,9 @@
 # fitness_mcp
 
 A generic, multi-platform fitness MCP server. It pulls data from **Garmin
-Connect** and **Strava**, stores everything locally in a single **DuckDB** file,
-and exposes analytics as **MCP tools** over stdio — usable from Claude Desktop,
-Cursor, Windsurf, VS Code, or any MCP client.
+Connect**, **Strava**, **Google Fit**, and **Suunto**, stores everything locally
+in a single **DuckDB** file, and exposes analytics as **MCP tools** over stdio —
+usable from Claude Desktop, Cursor, Windsurf, VS Code, or any MCP client.
 
 - **Zero running infrastructure** — sync is manual, the server runs on demand.
 - **Fully extensible** — adding a platform = implement one abstract class and
@@ -87,10 +87,14 @@ STRAVA_REFRESH_TOKEN=...
 
 ```bash
 python sync.py --platform all                          # last 30 days, all platforms
-python sync.py --platform garmin                       # last 30 days, Garmin only
+python sync.py --platform garmin                       # garmin | strava | google_fit | suunto
 python sync.py --platform garmin --from 2025-01-01 --to 2025-06-30
 python sync.py --platform garmin --full-history        # everything from 2010 (first run)
 ```
+
+Supported platforms: `garmin`, `strava`, `google_fit`, `suunto`. Garmin is the
+richest source (activities, sleep, HRV, body battery, stress); Strava and Suunto
+provide activities; Google Fit provides activities, sleep, and weight.
 
 After all platforms sync, duplicate workouts (same day + sport, duration and
 distance within 5%) are de-duplicated: the Garmin record is kept (richer
@@ -146,6 +150,19 @@ Metrics for `fitness_correlate` / `fitness_get_trends`: `sleep_score`,
 `sleep_duration`, `hrv`, `hrv_score`, `body_battery`, `training_load`,
 `distance`, `duration`, `avg_hr`, `stress`, `weight`.
 
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+PYTHONPATH=. pytest
+```
+
+The suite covers the DuckDB layer (upsert idempotency, dedup, sync log),
+provider payload parsing for all four platforms, the read-only SQL guard, and
+every MCP tool end-to-end against a seeded temp database — no network or
+credentials required. CI runs it on every push and pull request
+(`.github/workflows/tests.yml`).
+
 ## Adding a new platform
 
 1. Create `providers/newplatform.py` extending `FitnessProvider`.
@@ -156,6 +173,8 @@ Done — every tool includes it automatically when `platform="all"`.
 
 ## Project status
 
-Implemented: foundation, Garmin + Strava providers, dedup, and the full tools
-layer (activities, health, training, analysis, sync). Google Fit and Suunto
-providers are planned (Phase 5) and slot in via the same interface.
+Implemented: foundation, all four providers (Garmin, Strava, Google Fit,
+Suunto), cross-platform dedup, the full tools layer (activities, health,
+training, analysis, sync), and a pytest suite with CI. Google Fit has no HRV and
+Suunto exposes only workouts via its public API; both still satisfy the common
+`FitnessProvider` interface, so the tools layer treats them uniformly.

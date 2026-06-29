@@ -23,7 +23,9 @@ from dotenv import load_dotenv
 from db.database import Database
 from providers.base import FitnessProvider
 from providers.garmin import GarminProvider
+from providers.google_fit import GoogleFitProvider
 from providers.strava import StravaProvider
+from providers.suunto import SuuntoProvider
 
 load_dotenv()
 
@@ -31,6 +33,8 @@ load_dotenv()
 PROVIDERS: dict[str, type[FitnessProvider]] = {
     "garmin": GarminProvider,
     "strava": StravaProvider,
+    "google_fit": GoogleFitProvider,
+    "suunto": SuuntoProvider,
 }
 
 # How far back "--full-history" reaches.
