@@ -175,6 +175,36 @@ After all platforms sync, duplicate workouts (same day + sport, duration and
 distance within 5%) are de-duplicated: the Garmin record is kept (richer
 metrics) and the Strava id is merged into its `raw_json`.
 
+### Recurring (automated) sync
+
+After a one-time `python login.py`, the Garmin token auto-refreshes, so
+scheduled syncs run unattended for months (re-run `login.py` only when the
+long-lived token finally expires). The runner logs each run to `logs/sync.log`
+and exits non-zero if any platform errored:
+
+```bash
+python scripts/scheduled_sync.py --platform all
+```
+
+**Windows (Task Scheduler):**
+
+```powershell
+.\scripts\register_sync_task.ps1                  # daily 07:00, all platforms
+.\scripts\register_sync_task.ps1 -Time 06:30 -Platform garmin
+.\scripts\register_sync_task.ps1 -Daily2x         # 07:00 and 19:00
+.\scripts\register_sync_task.ps1 -Unregister      # remove it
+```
+
+The task runs as your user via S4U (no stored password, runs whether or not
+you're logged in) and catches up missed runs. Trigger a test run with
+`Get-ScheduledTask fitnessmcp-sync | Start-ScheduledTask`.
+
+**macOS/Linux (cron):** point cron at the same runner —
+
+```cron
+0 7 * * *  cd /path/to/fitMCP && .venv/bin/python scripts/scheduled_sync.py --platform all
+```
+
 ## Running the MCP server
 
 ```bash
