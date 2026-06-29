@@ -13,7 +13,7 @@ def register(mcp) -> None:
         """Sync fitness data from a platform into the local database.
 
         Args:
-            platform: 'garmin' | 'strava' | 'all' (default).
+            platform: 'garmin' | 'strava' | 'google_fit' | 'suunto' | 'all' (default).
 
         Returns records added, time taken, and any errors per platform.
         """
