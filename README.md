@@ -79,9 +79,31 @@ STRAVA_REFRESH_TOKEN=...
    Put the `refresh_token` from the response into `STRAVA_REFRESH_TOKEN`. The
    server refreshes the short-lived access token automatically on every sync.
 
-> Garmin uses `garth`, which logs in with your email/password and caches a
-> session token under `GARTH_HOME`. The first login may prompt for MFA; after
-> that, syncs reuse the cached token.
+> Garmin uses `garth`. **Preferred login** — run it once interactively so your
+> password is never written to disk:
+>
+> ```bash
+> python login.py        # prompts for email/password (+ MFA); caches a token
+> ```
+>
+> After that you can leave `GARMIN_PASSWORD` out of `.env`; syncs reuse the
+> cached session token. (Setting the password in `.env` still works as a
+> fallback for non-interactive/headless use.)
+
+## Security of credentials & sessions
+
+- **Nothing secret is committed** — `.env`, the DuckDB file, and the garth token
+  cache (`.garth/`, `*.token`) are all gitignored.
+- **Password stays off disk** — `python login.py` reads it via `getpass` and
+  only persists the resulting session token. Keep `GARMIN_PASSWORD` blank.
+- **Owner-only token cache** — after every Garmin login the `GARTH_HOME`
+  directory and its token files are `chmod`'d to `0700`/`0600` (POSIX).
+- **Exposure warning** — `sync.py` and `server.py` warn on startup if your
+  `.env` is group/world-readable, with the exact `chmod 600` fix.
+- **Treat session tokens like a password** — a cached garth token grants access
+  to your Garmin account. If a machine is compromised, delete `GARTH_HOME` and
+  re-run `login.py`. OAuth refresh tokens (Strava/Google/Suunto) are likewise
+  sensitive; revoke them in each platform's app settings if leaked.
 
 ## Syncing data
 

@@ -8,12 +8,14 @@ any other MCP client. Start with::
 
 from __future__ import annotations
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from security import warn_if_exposed
 from tools import register_all
 
 load_dotenv()
+warn_if_exposed(find_dotenv())
 
 mcp = FastMCP("fitness")
 register_all(mcp)

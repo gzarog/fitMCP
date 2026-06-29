@@ -110,14 +110,41 @@ class GarminProvider(FitnessProvider):
 
         if not self.email or not self.password:
             raise RuntimeError(
-                "Garmin credentials missing. Set GARMIN_EMAIL and GARMIN_PASSWORD "
-                "in your .env, or pre-authenticate so a token exists in GARTH_HOME."
+                "No valid Garmin session found. Run `python login.py` once to "
+                "sign in interactively (your password is never stored) and cache "
+                "a session token, or set GARMIN_EMAIL and GARMIN_PASSWORD in .env."
             )
         garth.login(self.email, self.password)
-        garth.save(self.garth_home)
+        self._save_session()
         profile = garth.connectapi("/userprofile-service/socialProfile")
         self._display_name = (profile or {}).get("displayName")
         return True
+
+    def login_interactive(self) -> str:
+        """Sign in to Garmin at the prompt and cache a session token.
+
+        Reads the password via getpass (never echoed, never written to disk) and
+        supports MFA. Returns the resolved Garmin display name on success.
+        """
+        import getpass
+
+        import garth
+
+        self._garth = garth
+        email = self.email or input("Garmin email: ").strip()
+        password = self.password or getpass.getpass("Garmin password: ")
+        garth.login(email, password, prompt_mfa=lambda: input("MFA code: ").strip())
+        self._save_session()
+        profile = garth.connectapi("/userprofile-service/socialProfile")
+        self._display_name = (profile or {}).get("displayName")
+        return self._display_name or email
+
+    def _save_session(self) -> None:
+        """Persist the garth token and lock down its file permissions."""
+        from security import harden_dir
+
+        self._garth.save(self.garth_home)
+        harden_dir(self.garth_home)
 
     def _api(self, path: str, **params: Any) -> Any:
         return self._garth.connectapi(path, params=params or None)
