@@ -31,6 +31,34 @@ Every tool returns:
 
 ## Setup
 
+### Automated (macOS / Linux)
+
+```bash
+./setup.sh                  # venv + deps + .env scaffold, then prints next steps
+```
+
+Then edit `.env`, and optionally let the script do the rest:
+
+```bash
+./setup.sh --login          # interactive Garmin login (password never stored)
+./setup.sh --sync           # initial sync of all platforms
+./setup.sh --claude         # install the Claude Desktop MCP config
+./setup.sh --dev            # install dev deps and run the test suite
+# flags combine: ./setup.sh --dev --login --sync --claude
+```
+
+A `Makefile` wraps the common actions — `make help`, `make setup`, `make login`,
+`make sync`, `make serve`, `make test`, `make claude-install`.
+
+The Claude Desktop entry can be generated or installed on its own:
+
+```bash
+python scripts/claude_config.py            # print the JSON snippet
+python scripts/claude_config.py --write     # merge it into your Claude config (with backup)
+```
+
+### Manual
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
