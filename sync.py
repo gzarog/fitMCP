@@ -18,7 +18,7 @@ import time
 from datetime import date, datetime, timedelta
 from typing import Optional
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from db.database import Database
 from providers.base import FitnessProvider
@@ -26,8 +26,10 @@ from providers.garmin import GarminProvider
 from providers.google_fit import GoogleFitProvider
 from providers.strava import StravaProvider
 from providers.suunto import SuuntoProvider
+from security import warn_if_exposed
 
 load_dotenv()
+warn_if_exposed(find_dotenv())
 
 # Registry: register a new platform here and it works everywhere.
 PROVIDERS: dict[str, type[FitnessProvider]] = {
