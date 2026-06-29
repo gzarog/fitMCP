@@ -31,6 +31,59 @@ Every tool returns:
 
 ## Setup
 
+### Automated (macOS / Linux)
+
+```bash
+./setup.sh                  # venv + deps + .env scaffold, then prints next steps
+```
+
+Then edit `.env`, and optionally let the script do the rest:
+
+```bash
+./setup.sh --login          # interactive Garmin login (password never stored)
+./setup.sh --sync           # initial sync of all platforms
+./setup.sh --claude         # install the Claude Desktop MCP config
+./setup.sh --dev            # install dev deps and run the test suite
+# flags combine: ./setup.sh --dev --login --sync --claude
+```
+
+A `Makefile` wraps the common actions — `make help`, `make setup`, `make login`,
+`make sync`, `make serve`, `make test`, `make claude-install`.
+
+### Automated (Windows / PowerShell)
+
+```powershell
+.\setup.ps1                  # venv + deps + .env scaffold (locked to your user), then next steps
+.\setup.ps1 -Dev -Login -Sync -Claude   # switches combine, same meaning as above
+```
+
+If PowerShell blocks the script, run it once as:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+Then use the venv directly for the recurring commands:
+
+```powershell
+.\.venv\Scripts\python.exe login.py
+.\.venv\Scripts\python.exe sync.py --platform garmin --full-history
+.\.venv\Scripts\python.exe scripts\claude_config.py --write   # Claude Desktop config
+```
+
+On Windows the setup script restricts `.env` to your user account via `icacls`
+(the POSIX `chmod` warning is a no-op there); the garth token cache lives under
+`%USERPROFILE%\.garth`, which is already user-scoped by default.
+
+The Claude Desktop entry can be generated or installed on its own:
+
+```bash
+python scripts/claude_config.py            # print the JSON snippet
+python scripts/claude_config.py --write     # merge it into your Claude config (with backup)
+```
+
+### Manual
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -121,6 +174,36 @@ provide activities; Google Fit provides activities, sleep, and weight.
 After all platforms sync, duplicate workouts (same day + sport, duration and
 distance within 5%) are de-duplicated: the Garmin record is kept (richer
 metrics) and the Strava id is merged into its `raw_json`.
+
+### Recurring (automated) sync
+
+After a one-time `python login.py`, the Garmin token auto-refreshes, so
+scheduled syncs run unattended for months (re-run `login.py` only when the
+long-lived token finally expires). The runner logs each run to `logs/sync.log`
+and exits non-zero if any platform errored:
+
+```bash
+python scripts/scheduled_sync.py --platform all
+```
+
+**Windows (Task Scheduler):**
+
+```powershell
+.\scripts\register_sync_task.ps1                  # daily 07:00, all platforms
+.\scripts\register_sync_task.ps1 -Time 06:30 -Platform garmin
+.\scripts\register_sync_task.ps1 -Daily2x         # 07:00 and 19:00
+.\scripts\register_sync_task.ps1 -Unregister      # remove it
+```
+
+The task runs as your user via S4U (no stored password, runs whether or not
+you're logged in) and catches up missed runs. Trigger a test run with
+`Get-ScheduledTask fitnessmcp-sync | Start-ScheduledTask`.
+
+**macOS/Linux (cron):** point cron at the same runner —
+
+```cron
+0 7 * * *  cd /path/to/fitMCP && .venv/bin/python scripts/scheduled_sync.py --platform all
+```
 
 ## Running the MCP server
 

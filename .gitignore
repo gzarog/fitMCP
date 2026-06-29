@@ -8,6 +8,9 @@
 *.duckdb.wal
 fitness.duckdb*
 
+# Sync logs
+logs/
+
 # Python
 __pycache__/
 *.py[cod]
