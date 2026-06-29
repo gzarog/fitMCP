@@ -1,0 +1,35 @@
+# Environment / credentials
+.env
+.garth/
+*.token
+
+# Database
+*.duckdb
+*.duckdb.wal
+fitness.duckdb*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+ENV/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
