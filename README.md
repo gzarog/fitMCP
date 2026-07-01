@@ -255,6 +255,15 @@ Metrics for `fitness_correlate` / `fitness_get_trends`: `sleep_score`,
 `sleep_duration`, `hrv`, `hrv_score`, `body_battery`, `training_load`,
 `distance`, `duration`, `avg_hr`, `stress`, `weight`.
 
+## FitBrain — coaching layer
+
+For a data-driven coaching experience, create a Claude Project named **FitBrain**
+and paste [`prompts/fitbrain_system_prompt.md`](prompts/fitbrain_system_prompt.md)
+into its custom instructions (edit the "Who I am"/"Goals" to match you). It makes
+Claude always check freshness and pull live data before answering, hunt for
+correlations, flag overtraining signals, and stay direct. See
+[`prompts/README.md`](prompts/README.md) for setup and example questions.
+
 ## Tests
 
 ```bash
@@ -280,6 +289,10 @@ Done — every tool includes it automatically when `platform="all"`.
 
 Implemented: foundation, all four providers (Garmin, Strava, Google Fit,
 Suunto), cross-platform dedup, the full tools layer (activities, health,
-training, analysis, sync), and a pytest suite with CI. Google Fit has no HRV and
-Suunto exposes only workouts via its public API; both still satisfy the common
-`FitnessProvider` interface, so the tools layer treats them uniformly.
+training, analysis, sync), credential/session hardening, automated setup
+(macOS/Linux/Windows), scheduled recurring sync, the FitBrain coaching prompt,
+and a pytest suite with CI. Google Fit has no HRV and Suunto exposes only
+workouts via its public API; both still satisfy the common `FitnessProvider`
+interface, so the tools layer treats them uniformly.
+
+What's left is live validation against real accounts (needs your credentials).
